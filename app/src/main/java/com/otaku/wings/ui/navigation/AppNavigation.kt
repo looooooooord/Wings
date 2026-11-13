@@ -1,11 +1,22 @@
 package com.otaku.wings.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.LocalLibrary
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -13,11 +24,15 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,6 +40,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.otaku.wings.data.model.displayTitle
 import com.otaku.wings.ui.detail.DetailScreen
 import com.otaku.wings.ui.home.HomeScreen
 import com.otaku.wings.ui.list.ListScreen
@@ -32,16 +48,19 @@ import com.otaku.wings.ui.my.MyScreen
 import com.otaku.wings.ui.search.SearchScreen
 import com.otaku.wings.ui.settings.SettingsScreen
 import com.otaku.wings.ui.viewer.ViewerScreen
-import com.otaku.wings.data.model.displayTitle
 import java.net.URLDecoder
 import java.net.URLEncoder
 
-private data class TabItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+private data class TabItem(
+    val route: String,
+    val label: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
+)
 
 private val tabItems = listOf(
-    TabItem("home", "الرئيسية", Icons.Default.Home),
-    TabItem("search", "بحث", Icons.Default.Search),
-    TabItem("my", "مكتبتي", Icons.Default.Person),
+    TabItem("home", "الأحدث", Icons.Default.NewReleases),
+    TabItem("search", "استكشف", Icons.Default.Explore),
+    TabItem("my", "مكتبتي", Icons.Default.LocalLibrary),
     TabItem("settings", "الإعدادات", Icons.Default.Settings)
 )
 
@@ -53,33 +72,71 @@ fun AppNavigation() {
     val showBottomBar = tabItems.any { it.route == currentRoute }
 
     Scaffold(
-        // 내부 화면들이 각자 자기 Scaffold로 상태바/네비게이션바 인셋을 처리하므로,
-        // 바깥 Scaffold는 탭 바 높이만큼만 공간을 차지하고 النظام 인셋은 중복으로 소비하지 않음
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
-                    tabItems.forEach { tab ->
-                        NavigationBarItem(
-                            selected = currentRoute == tab.route,
-                            onClick = {
-                                nav.navigate(tab.route) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(tab.icon, contentDescription = tab.label) },
-                            label = { Text(tab.label) },
-                            // 스포티파이처럼 캡슐 배경 없이 선택된 아이콘/텍스트만 브랜드 컬러로 표시
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                indicatorColor = Color.Transparent
-                            )
-                        )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 6.dp,
+                        shadowElevation = 14.dp
+                    ) {
+                        NavigationBar(
+                            modifier = Modifier.fillMaxWidth(),
+                            containerColor = Color.Transparent,
+                            tonalElevation = 0.dp
+                        ) {
+                            tabItems.forEach { tab ->
+                                val selected = currentRoute == tab.route
+                                val iconScale by animateFloatAsState(
+                                    targetValue = if (selected) 1.14f else 1f,
+                                    animationSpec = tween(260),
+                                    label = "nav-icon-scale-${tab.route}"
+                                )
+                                val iconOffset by animateDpAsState(
+                                    targetValue = if (selected) (-3).dp else 0.dp,
+                                    animationSpec = tween(260),
+                                    label = "nav-icon-offset-${tab.route}"
+                                )
+                                NavigationBarItem(
+                                    selected = selected,
+                                    onClick = {
+                                        nav.navigate(tab.route) {
+                                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = tab.icon,
+                                            contentDescription = tab.label,
+                                            modifier = Modifier.graphicsLayer {
+                                                scaleX = iconScale
+                                                scaleY = iconScale
+                                                translationY = iconOffset.toPx()
+                                            }
+                                        )
+                                    },
+                                    label = { Text(tab.label) },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -88,21 +145,41 @@ fun AppNavigation() {
         NavHost(
             navController = nav,
             startDestination = "home",
-            modifier = Modifier.padding(bottom = scaffoldPadding.calculateBottomPadding())
+            modifier = Modifier.padding(bottom = scaffoldPadding.calculateBottomPadding()),
+            enterTransition = {
+                fadeIn(tween(280)) + slideInHorizontally(
+                    initialOffsetX = { it / 5 },
+                    animationSpec = tween(280)
+                )
+            },
+            exitTransition = {
+                fadeOut(tween(180)) + slideOutHorizontally(
+                    targetOffsetX = { -it / 5 },
+                    animationSpec = tween(180)
+                )
+            },
+            popEnterTransition = {
+                fadeIn(tween(280)) + slideInHorizontally(
+                    initialOffsetX = { -it / 5 },
+                    animationSpec = tween(280)
+                )
+            },
+            popExitTransition = {
+                fadeOut(tween(180)) + slideOutHorizontally(
+                    targetOffsetX = { it / 5 },
+                    animationSpec = tween(180)
+                )
+            }
         ) {
-
             composable("home") {
                 HomeScreen(
                     onSeriesClick = { series ->
                         val encoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
                         nav.navigate("detail/$encoded")
                     },
-                    onMoreClick = { category ->
-                        nav.navigate("list/$category")
-                    }
+                    onMoreClick = { category -> nav.navigate("list/$category") }
                 )
             }
-
             composable("search") {
                 SearchScreen(
                     onSeriesClick = { series ->
@@ -111,19 +188,15 @@ fun AppNavigation() {
                     }
                 )
             }
-
             composable("my") {
                 MyScreen(
-                    onMoreClick = { category ->
-                        nav.navigate("list/$category")
+                    onSeriesClick = { series ->
+                        val encoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
+                        nav.navigate("detail/$encoded")
                     }
                 )
             }
-
-            composable("settings") {
-                SettingsScreen()
-            }
-
+            composable("settings") { SettingsScreen() }
             composable(
                 "list/{category}",
                 arguments = listOf(navArgument("category") { type = NavType.StringType })
@@ -138,7 +211,6 @@ fun AppNavigation() {
                     }
                 )
             }
-
             composable(
                 "detail/{url}",
                 arguments = listOf(navArgument("url") { type = NavType.StringType })
@@ -159,7 +231,6 @@ fun AppNavigation() {
                     }
                 )
             }
-
             composable(
                 "viewer/{chapterUrl}/{title}/{seriesId}/{seriesUrl}/{seriesTitle}/{seriesAuthor}/{coverUrl}",
                 arguments = listOf(
@@ -196,7 +267,6 @@ fun AppNavigation() {
                         val seriesTitleEncoded = URLEncoder.encode(seriesTitle, "UTF-8")
                         val seriesAuthorEncoded = URLEncoder.encode(seriesAuthor, "UTF-8")
                         val coverUrlEncoded = URLEncoder.encode(coverUrl, "UTF-8")
-                        // 챕터를 계속 넘기면 رجوع가기 스택이 쌓이지 않도록 현재 뷰어를 교체
                         nav.popBackStack()
                         nav.navigate("viewer/$encodedChapterUrl/$titleEncoded/$seriesIdEncoded/$seriesUrlEncoded/$seriesTitleEncoded/$seriesAuthorEncoded/$coverUrlEncoded")
                     }
