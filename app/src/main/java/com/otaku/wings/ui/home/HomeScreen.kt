@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.otaku.wings.data.model.Series
 import com.otaku.wings.ui.common.SeriesCarouselSection
+import com.otaku.wings.ui.common.TabHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,16 +27,13 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
     val hasContent = state.latest.isNotEmpty() || state.popular.isNotEmpty()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Wings") },
+    Scaffold { padding ->
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            TabHeader(
+                title = "الأحدث",
                 actions = {
                     if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.padding(horizontal = 16.dp).size(24.dp),
-                            strokeWidth = 2.dp
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
                     } else {
                         IconButton(onClick = { viewModel.refresh() }) {
                             Icon(Icons.Default.Refresh, contentDescription = "تحديث")
@@ -43,9 +41,7 @@ fun HomeScreen(
                     }
                 }
             )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
                 // تحديث 중에도 이미 있던 콘텐츠는 그대로 보여주고, 최초 로딩일 때만 전체 화면 스피너
                 state.isLoading && !hasContent -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -110,6 +106,7 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
             }
         }
     }

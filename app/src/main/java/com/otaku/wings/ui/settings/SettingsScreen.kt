@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.otaku.wings.BuildConfig
 import com.otaku.wings.data.local.ThemeMode
+import com.otaku.wings.ui.common.TabHeader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,25 +56,21 @@ fun SettingsScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("الإعدادات") },
-                actions = {
-                    IconButton(onClick = { showHelpDialog = true }) {
-                        Icon(Icons.Outlined.HelpOutline, contentDescription = "المساعدة")
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
+            TabHeader(
+                title = "الإعدادات",
+                actions = {
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(Icons.Outlined.HelpOutline, contentDescription = "المساعدة")
+                    }
+                }
+            )
 
             SettingsSectionTitle("الشاشة")
             ListItem(
