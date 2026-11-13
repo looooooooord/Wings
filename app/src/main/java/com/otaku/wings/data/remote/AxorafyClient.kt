@@ -30,7 +30,18 @@ class AxorafyClient {
         }
         val post = root.optJSONObject("post") ?: return@withContext null to emptyList()
         val series = parseSeries(post)
-        series to parseChapters(post.optJSONArray("chapters"), series.sourceUrl, series.id)
+        var chapters = parseChapters(post.optJSONArray("chapters"), series.sourceUrl, series.id)
+        if (chapters.isEmpty()) {
+            val chapterRoot = getJson("/api/chapters") {
+                addQueryParameter("postId", series.id)
+            }
+            chapters = parseChapters(
+                chapterRoot.optJSONObject("post")?.optJSONArray("chapters"),
+                series.sourceUrl,
+                series.id
+            )
+        }
+        series to chapters
     }
 
     suspend fun chapters(seriesUrl: String): List<Chapter> = details(seriesUrl).second

@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -50,6 +51,8 @@ import com.otaku.wings.ui.settings.SettingsScreen
 import com.otaku.wings.ui.viewer.ViewerScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
+
+private const val TRANSITION_DURATION = 420
 
 private data class TabItem(
     val route: String,
@@ -98,12 +101,12 @@ fun AppNavigation() {
                                 val selected = currentRoute == tab.route
                                 val iconScale by animateFloatAsState(
                                     targetValue = if (selected) 1.14f else 1f,
-                                    animationSpec = tween(260),
+                                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing),
                                     label = "nav-icon-scale-${tab.route}"
                                 )
                                 val iconOffset by animateDpAsState(
                                     targetValue = if (selected) (-3).dp else 0.dp,
-                                    animationSpec = tween(260),
+                                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing),
                                     label = "nav-icon-offset-${tab.route}"
                                 )
                                 NavigationBarItem(
@@ -147,27 +150,27 @@ fun AppNavigation() {
             startDestination = "home",
             modifier = Modifier.padding(bottom = scaffoldPadding.calculateBottomPadding()),
             enterTransition = {
-                fadeIn(tween(280)) + slideInHorizontally(
-                    initialOffsetX = { it / 5 },
-                    animationSpec = tween(280)
+                fadeIn(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideInHorizontally(
+                    initialOffsetX = { it / 6 },
+                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
                 )
             },
             exitTransition = {
-                fadeOut(tween(180)) + slideOutHorizontally(
-                    targetOffsetX = { -it / 5 },
-                    animationSpec = tween(180)
+                fadeOut(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideOutHorizontally(
+                    targetOffsetX = { -it / 6 },
+                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
                 )
             },
             popEnterTransition = {
-                fadeIn(tween(280)) + slideInHorizontally(
-                    initialOffsetX = { -it / 5 },
-                    animationSpec = tween(280)
+                fadeIn(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideInHorizontally(
+                    initialOffsetX = { -it / 6 },
+                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
                 )
             },
             popExitTransition = {
-                fadeOut(tween(180)) + slideOutHorizontally(
-                    targetOffsetX = { it / 5 },
-                    animationSpec = tween(180)
+                fadeOut(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideOutHorizontally(
+                    targetOffsetX = { it / 6 },
+                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
                 )
             }
         ) {

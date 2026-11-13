@@ -24,7 +24,9 @@ class DetailViewModel(
 ) : AndroidViewModel(app) {
 
     private val repo = MangaRepository(app)
-    private val seriesId = seriesUrl.substringAfterLast("/").ifBlank { seriesUrl }
+    private val seriesId = seriesUrl.substringAfter('#').ifBlank {
+        seriesUrl.substringAfterLast("/").ifBlank { seriesUrl }
+    }
 
     private val _state = MutableStateFlow(DetailUiState())
     val state: StateFlow<DetailUiState> = _state.asStateFlow()
