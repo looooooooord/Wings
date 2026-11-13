@@ -1,0 +1,65 @@
+name: Build Wings Android
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null || true
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Create temporary signing key
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore "$RUNNER_TEMP/wings-release.jks" \
+            -storepass wings-temp \
+            -keypass wings-temp \
+            -alias wings-temp \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -dname "CN=Wings Temporary, OU=Build, O=Wings, L=NA, ST=NA, C=US"
+          cat > keystore.properties <<EOF
+          storeFile=$RUNNER_TEMP/wings-release.jks
+          storePassword=wings-temp
+          keyAlias=wings-temp
+          keyPassword=wings-temp
+          EOF
+
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build signed release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wings-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
