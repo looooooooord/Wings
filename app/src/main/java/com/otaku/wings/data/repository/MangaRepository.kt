@@ -1,75 +1,35 @@
 package com.otaku.wings.data.repository
 
 import android.content.Context
-import android.util.Log
 import com.otaku.wings.data.local.AppDatabase
-import com.otaku.wings.data.local.SettingsRepository
-import com.otaku.wings.data.local.UrlMode
 import com.otaku.wings.data.local.entity.BookmarkEntity
 import com.otaku.wings.data.local.entity.ReadHistoryEntity
 import com.otaku.wings.data.model.Chapter
 import com.otaku.wings.data.model.MangaPage
 import com.otaku.wings.data.model.Series
-import com.otaku.wings.data.remote.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.withLock
 
 class MangaRepository(context: Context) {
 
     private val db = AppDatabase.getInstance(context)
     private val bookmarkDao = db.bookmarkDao()
     private val historyDao = db.readHistoryDao()
-    private val settingsRepo = SettingsRepository(context)
 
-    companion object {
-        // 텔레그램 채널에서 알아낸 kmana 도메인은 세션 동안 거의 바뀌지 않으므로
-        // 화면마다 새로 생성되는 MangaRepository 인스턴스들이 공유하도록 companion에 캐싱
-        @Volatile private var cachedAutoBaseUrl: String? = null
-        private val baseUrlMutex = kotlinx.coroutines.sync.Mutex()
-    }
+    // مصدر المحتوى الخارجي محذوف؛ تبقى البيانات المحلية للمحفوظات وسجل القراءة.
 
-    // ── 원격 ──────────────────────────────────────────
+    suspend fun fetchLatest(): List<Series> = emptyList()
 
-    private suspend fun resolveBaseUrl(): String {
-        if (settingsRepo.getUrlMode() == UrlMode.MANUAL) {
-            val manual = settingsRepo.getManualBaseUrl().trim()
-            if (manual.isNotBlank()) return manual.trimEnd('/')
-        }
-        cachedAutoBaseUrl?.let { return it }
-        return baseUrlMutex.withLock {
-            cachedAutoBaseUrl?.let { return@withLock it }
-            val urls = fetchChannelUrls()
-            Log.d("MangaRepo", "Telegram URLs: $urls")
-            // 텔레그램에서 가져온 kmana 도메인 중 첫 번째 사용; 없으면 기본값
-            val resolved = urls.firstOrNull()?.trimEnd('/') ?: "https://kmana10.net"
-            cachedAutoBaseUrl = resolved
-            resolved
-        }
-    }
+    suspend fun fetchPopular(): List<Series> = emptyList()
 
-    suspend fun fetchLatest(): List<Series> {
-        val base = resolveBaseUrl()
-        return scrapeLatest(base).also { Log.d("MangaRepo", "fetchLatest: ${it.size} items") }
-    }
+    suspend fun fetchChapters(seriesUrl: String): List<Chapter> = emptyList()
 
-    suspend fun fetchPopular(): List<Series> {
-        val base = resolveBaseUrl()
-        return scrapePopular(base).also { Log.d("MangaRepo", "fetchPopular: ${it.size} items") }
-    }
+    suspend fun fetchSeriesDetail(url: String): Pair<Series?, List<Chapter>> = null to emptyList()
 
-    suspend fun fetchChapters(seriesUrl: String): List<Chapter> = scrapeChapters(seriesUrl)
+    suspend fun fetchPages(chapterUrl: String): List<MangaPage> = emptyList()
 
-    // 디테일 화면 전용: 시리즈 정보 + 챕터 목록을 한 번의 fetchDoc으로 함께 받아옴
-    suspend fun fetchSeriesDetail(url: String): Pair<Series?, List<Chapter>> = scrapeSeriesDetail(url)
-
-    suspend fun fetchPages(chapterUrl: String): List<MangaPage> = scrapePages(chapterUrl)
-
-    suspend fun search(keyword: String): List<Series> {
-        val base = resolveBaseUrl()
-        return searchSeries(base, keyword)
-    }
+    suspend fun search(keyword: String): List<Series> = emptyList()
 
     // ── المحفوظات ─────────────────────────────────────────
 
@@ -115,9 +75,7 @@ class MangaRepository(context: Context) {
                     title = e.seriesTitle,
                     author = e.seriesAuthor,
                     coverUrl = e.coverUrl,
-                    // 예전 기록엔 seriesUrl이 없을 수 있어(مكتبتي그레이션 이전 데이터),
-                    // 그 경우에만 KmanaScraper와 동일한 "/episode/{id}/1/1" 패턴으로 복원
-                    sourceUrl = e.seriesUrl.ifBlank { "${resolveBaseUrl()}/episode/${e.seriesId}/1/1" },
+                    sourceUrl = e.seriesUrl,
                     latestChapter = e.chapterTitle
                 )
             }

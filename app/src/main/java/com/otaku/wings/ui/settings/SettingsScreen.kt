@@ -6,8 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.*
@@ -20,18 +18,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.otaku.wings.BuildConfig
 import com.otaku.wings.data.local.ThemeMode
-import com.otaku.wings.data.local.UrlMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private const val GITHUB_URL = "https://github.com/k0ngjs/Wings"
+private const val GITHUB_URL = "https://github.com/looooooooord/Wings"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,45 +74,6 @@ fun SettingsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            SettingsSectionTitle("مصدر المحتوى")
-            ListItem(
-                headlineContent = { Text("URL الإعدادات") },
-                trailingContent = {
-                    SingleChoiceSegmentedButtonRow {
-                        SegmentedButton(
-                            selected = state.urlMode == UrlMode.AUTO,
-                            onClick = { viewModel.setUrlMode(UrlMode.AUTO) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            modifier = Modifier.weight(1f)
-                        ) { Text("تلقائي") }
-                        SegmentedButton(
-                            selected = state.urlMode == UrlMode.MANUAL,
-                            onClick = { viewModel.setUrlMode(UrlMode.MANUAL) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            modifier = Modifier.weight(1f)
-                        ) { Text("يدوي") }
-                    }
-                }
-            )
-            if (state.urlMode == UrlMode.MANUAL) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = state.manualBaseUrl,
-                        onValueChange = viewModel::onManualUrlChange,
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        placeholder = { Text("https://kmana10.net") },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { viewModel.saveManualUrl() })
-                    )
-                    TextButton(onClick = { viewModel.saveManualUrl() }) { Text("حفظ") }
-                }
-            }
-
-            HorizontalDivider()
 
             SettingsSectionTitle("الشاشة")
             ListItem(
@@ -202,10 +159,8 @@ fun SettingsScreen(
             title = { Text("المساعدة") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("· اختر قصة مصورة وفصلًا من الصفحة الرئيسية للانتقال مباشرة إلى القارئ.")
                     Text("· من أيقونة الإعدادات أعلى القارئ يمكنك تغيير طريقة العرض واتجاه القراءة وعرض صفحتين.")
                     Text("· استخدم زر المحفوظات في صفحة التفاصيل لحفظ قصصك المفضلة وعرضها في تبويب مكتبتي.")
-                    Text("· إذا تعذر تحميل القصص، فتحقق من إعداد عنوان URL التلقائي أو اليدوي.")
                     Text("· يتيح لك المظهر اختيار وضع إضاءة التطبيق: فاتح أو النظام أو داكن.")
                     Text("· يمكنك تصدير المحفوظات وسجل القراءة إلى ملف أو استعادتهما منه.")
                     Text("· يحذف حذف البيانات المحفوظات وسجل القراءة نهائيًا. يرجى الانتباه لأن العملية لا يمكن التراجع عنها.")

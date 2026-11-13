@@ -24,8 +24,7 @@ class DetailViewModel(
 ) : AndroidViewModel(app) {
 
     private val repo = MangaRepository(app)
-    // "/episode/{seriesId}/{chapter}/{page}?..." 형식에서 실제 시리즈 ID 추출 (KmanaScraper와 동일한 방식)
-    private val seriesId = seriesUrl.substringAfter("/episode/").substringBefore("/")
+    private val seriesId = seriesUrl.substringAfterLast("/").ifBlank { seriesUrl }
 
     private val _state = MutableStateFlow(DetailUiState())
     val state: StateFlow<DetailUiState> = _state.asStateFlow()

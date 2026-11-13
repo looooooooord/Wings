@@ -223,7 +223,6 @@ private fun ZoomableImage(
     AsyncImage(
         model = ImageRequest.Builder(context)
             .data(imageUrl)
-            .addHeader("Referer", "https://kmana10.net/")
             .crossfade(true)
             .build(),
         contentDescription = null,

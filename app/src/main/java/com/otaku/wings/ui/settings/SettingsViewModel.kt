@@ -8,7 +8,6 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.otaku.wings.data.local.SettingsRepository
 import com.otaku.wings.data.local.ThemeMode
-import com.otaku.wings.data.local.UrlMode
 import com.otaku.wings.data.repository.MangaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +16,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val urlMode: UrlMode = UrlMode.AUTO,
-    val manualBaseUrl: String = "",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val snackbarMessage: String? = null
 )
@@ -30,27 +27,13 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _state = MutableStateFlow(
         SettingsUiState(
-            urlMode = settingsRepo.getUrlMode(),
-            manualBaseUrl = settingsRepo.getManualBaseUrl(),
             themeMode = settingsRepo.getThemeMode()
         )
     )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
 
-    fun setUrlMode(mode: UrlMode) {
-        settingsRepo.setUrlMode(mode)
-        _state.update { it.copy(urlMode = mode) }
-    }
 
-    fun onManualUrlChange(url: String) {
-        _state.update { it.copy(manualBaseUrl = url) }
-    }
 
-    fun saveManualUrl() {
-        val url = _state.value.manualBaseUrl.trim()
-        settingsRepo.setManualBaseUrl(url)
-        _state.update { it.copy(manualBaseUrl = url, snackbarMessage = "تم حفظ عنوان URL") }
-    }
 
     fun setThemeMode(mode: ThemeMode) {
         settingsRepo.setThemeMode(mode)

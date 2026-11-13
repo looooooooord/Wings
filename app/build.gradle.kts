@@ -89,10 +89,8 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Network
-    implementation(libs.okhttp)
 
     // HTML parsing
-    implementation(libs.jsoup)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

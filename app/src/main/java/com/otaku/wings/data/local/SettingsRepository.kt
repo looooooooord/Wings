@@ -6,15 +6,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 private const val PREFS_NAME = "wings_settings"
 private const val KEY_DEFAULT_VIEWER_MODE = "default_viewer_mode"
-private const val KEY_URL_MODE = "url_mode"
-private const val KEY_MANUAL_BASE_URL = "manual_base_url"
 private const val KEY_THEME_MODE = "theme_mode"
 private const val KEY_READING_DIRECTION = "reading_direction"
 private const val KEY_TWO_PAGE_MODE = "two_page_mode"
 private const val KEY_FIRST_PAGE_SINGLE = "first_page_single"
-private const val DEFAULT_MANUAL_URL = "https://kmana10.net"
 
-enum class UrlMode { AUTO, MANUAL }
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 enum class ReadingDirection { LTR, RTL }
 
@@ -23,7 +19,6 @@ object ThemeState {
     val mode = MutableStateFlow(ThemeMode.SYSTEM)
 }
 
-// kmana10 연동과 무관한 앱 자체 로컬 الإعدادات حفظ소 (URL 소스 الإعدادات은 예외 - 연동 대상 자체를 바꾸는 الإعدادات)
 class SettingsRepository(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -38,18 +33,7 @@ class SettingsRepository(context: Context) {
         prefs.edit().putString(KEY_DEFAULT_VIEWER_MODE, mode.name).apply()
     }
 
-    fun getUrlMode(): UrlMode =
-        if (prefs.getString(KEY_URL_MODE, null) == UrlMode.MANUAL.name) UrlMode.MANUAL else UrlMode.AUTO
 
-    fun setUrlMode(mode: UrlMode) {
-        prefs.edit().putString(KEY_URL_MODE, mode.name).apply()
-    }
-
-    fun getManualBaseUrl(): String = prefs.getString(KEY_MANUAL_BASE_URL, DEFAULT_MANUAL_URL) ?: DEFAULT_MANUAL_URL
-
-    fun setManualBaseUrl(url: String) {
-        prefs.edit().putString(KEY_MANUAL_BASE_URL, url).apply()
-    }
 
     fun getThemeMode(): ThemeMode =
         when (prefs.getString(KEY_THEME_MODE, null)) {

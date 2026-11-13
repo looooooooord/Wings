@@ -75,12 +75,10 @@ class ViewerViewModel(
         }
     }
 
-    // الفصل السابق/الفصل التالي 버튼을 위해 시리즈의 전체 챕터 목록에서 현재 챕터의 앞뒤를 찾음
     private fun loadAdjacentChapters() {
         viewModelScope.launch {
             try {
-                val baseUrl = Regex("""^(https?://[^/]+)""").find(chapterUrl)?.groupValues?.get(1) ?: "https://kmana10.net"
-                val chapters = repo.fetchChapters("$baseUrl/episode/$seriesId/1/1")
+                val chapters = repo.fetchChapters(chapterUrl)
                 val index = chapters.indexOfFirst { it.url == chapterUrl }
                 if (index == -1) return@launch
                 _state.update {

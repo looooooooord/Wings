@@ -16,7 +16,6 @@ data class MyUiState(
     val recent: List<Series> = emptyList()
 )
 
-// kmana10 연동 없이 앱 로컬 DB(المحفوظات·읽기기록)만으로 구성되는 화면
 class MyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = MangaRepository(app)
