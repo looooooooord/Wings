@@ -22,11 +22,10 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses >/dev/null || true
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Make Gradle executable
         run: chmod +x ./gradlew
@@ -43,12 +42,11 @@ jobs:
             -keysize 2048 \
             -validity 1 \
             -dname "CN=Wings Temporary, OU=Build, O=Wings, L=NA, ST=NA, C=US"
-          cat > keystore.properties <<EOF
-          storeFile=$RUNNER_TEMP/wings-release.jks
-          storePassword=wings-temp
-          keyAlias=wings-temp
-          keyPassword=wings-temp
-          EOF
+          printf '%s\n' \
+            "storeFile=$RUNNER_TEMP/wings-release.jks" \
+            "storePassword=wings-temp" \
+            "keyAlias=wings-temp" \
+            "keyPassword=wings-temp" > keystore.properties
 
       - name: Run unit tests
         run: ./gradlew test --no-daemon
