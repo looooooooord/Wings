@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Network
+    implementation(libs.okhttp)
 
     // HTML parsing
 

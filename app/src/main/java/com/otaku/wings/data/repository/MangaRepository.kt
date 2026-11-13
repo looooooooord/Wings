@@ -4,6 +4,7 @@ import android.content.Context
 import com.otaku.wings.data.local.AppDatabase
 import com.otaku.wings.data.local.entity.BookmarkEntity
 import com.otaku.wings.data.local.entity.ReadHistoryEntity
+import com.otaku.wings.data.remote.AxorafyClient
 import com.otaku.wings.data.model.Chapter
 import com.otaku.wings.data.model.MangaPage
 import com.otaku.wings.data.model.Series
@@ -17,19 +18,19 @@ class MangaRepository(context: Context) {
     private val bookmarkDao = db.bookmarkDao()
     private val historyDao = db.readHistoryDao()
 
-    // مصدر المحتوى الخارجي محذوف؛ تبقى البيانات المحلية للمحفوظات وسجل القراءة.
+    private val axorafy = AxorafyClient()
 
-    suspend fun fetchLatest(): List<Series> = emptyList()
+    suspend fun fetchLatest(): List<Series> = axorafy.latest()
 
-    suspend fun fetchPopular(): List<Series> = emptyList()
+    suspend fun fetchPopular(): List<Series> = axorafy.popular()
 
-    suspend fun fetchChapters(seriesUrl: String): List<Chapter> = emptyList()
+    suspend fun fetchChapters(seriesUrl: String): List<Chapter> = axorafy.chapters(seriesUrl)
 
-    suspend fun fetchSeriesDetail(url: String): Pair<Series?, List<Chapter>> = null to emptyList()
+    suspend fun fetchSeriesDetail(url: String): Pair<Series?, List<Chapter>> = axorafy.details(url)
 
-    suspend fun fetchPages(chapterUrl: String): List<MangaPage> = emptyList()
+    suspend fun fetchPages(chapterUrl: String): List<MangaPage> = axorafy.pages(chapterUrl)
 
-    suspend fun search(keyword: String): List<Series> = emptyList()
+    suspend fun search(keyword: String): List<Series> = axorafy.search(keyword)
 
     // ── المحفوظات ─────────────────────────────────────────
 
