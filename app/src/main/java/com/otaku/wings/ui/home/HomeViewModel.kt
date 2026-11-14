@@ -1,10 +1,13 @@
 package com.otaku.wings.ui.home
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.otaku.wings.data.model.Series
 import com.otaku.wings.data.repository.MangaRepository
+import com.otaku.wings.ui.common.ErrorKind
+import com.otaku.wings.ui.common.classifyError
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +22,15 @@ data class HomeUiState(
     val bookmarked: List<Series> = emptyList(),
     val recent: List<Series> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
-)
+    val error: ErrorKind? = null
+) {
+    val hasContent: Boolean
+        get() = latest.isNotEmpty() || popular.isNotEmpty()
+
+    val hasAnySection: Boolean
+        get() = latest.isNotEmpty() || popular.isNotEmpty() ||
+            bookmarked.isNotEmpty() || recent.isNotEmpty()
+}
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -48,6 +58,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun refresh() {
+        if (_state.value.isLoading) return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
@@ -58,7 +69,8 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 _state.update { it.copy(latest = latest, popular = popular, isLoading = false) }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, error = "فشل التحميل: ${e.message}") }
+                Log.e("HomeViewModel", "Failed to refresh home content", e)
+                _state.update { it.copy(isLoading = false, error = classifyError(e)) }
             }
         }
     }

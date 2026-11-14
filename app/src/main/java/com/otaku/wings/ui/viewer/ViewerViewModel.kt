@@ -1,6 +1,7 @@
 package com.otaku.wings.ui.viewer
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.otaku.wings.data.local.ReadingDirection
@@ -9,13 +10,19 @@ import com.otaku.wings.data.model.Chapter
 import com.otaku.wings.data.model.MangaPage
 import com.otaku.wings.data.model.ViewerMode
 import com.otaku.wings.data.repository.MangaRepository
-import kotlinx.coroutines.flow.*
+import com.otaku.wings.ui.common.ErrorKind
+import com.otaku.wings.ui.common.classifyError
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ViewerUiState(
     val pages: List<MangaPage> = emptyList(),
-    // -1: 아직 어떤 페이지도 기록되지 않음. 0으로 두면 첫 페이지(인덱스 0) 진입 시
-    // "이전과 동일"로 취급돼 읽기 기록이 حفظ되지 않는 문제가 있었음
+    // -1 means "no page recorded yet". Using 0 would make entering page 0 look like "unchanged"
+    // and the first reading-history write would be skipped.
     val currentPage: Int = -1,
     val mode: ViewerMode = ViewerMode.WEBTOON,
     val readingDirection: ReadingDirection = ReadingDirection.LTR,
@@ -26,7 +33,7 @@ data class ViewerUiState(
     val prevChapter: Chapter? = null,
     val nextChapter: Chapter? = null,
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: ErrorKind? = null
 )
 
 class ViewerViewModel(
@@ -53,26 +60,36 @@ class ViewerViewModel(
     )
     val state: StateFlow<ViewerUiState> = _state.asStateFlow()
 
+    private var pagesJob: Job? = null
+
     init {
         loadPages()
         loadAdjacentChapters()
     }
 
     private fun loadPages() {
-        viewModelScope.launch {
+        pagesJob = viewModelScope.launch {
             try {
                 val pages = repo.fetchPages(chapterUrl)
                 _state.update {
                     it.copy(
                         pages = pages,
                         isLoading = false,
-                        error = if (pages.isEmpty()) "تعذر تحميل الصفحات." else null
+                        error = if (pages.isEmpty()) ErrorKind.GENERIC else null
                     )
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, error = e.message) }
+                Log.e("ViewerViewModel", "Failed to load pages for '$chapterUrl'", e)
+                _state.update { it.copy(isLoading = false, error = classifyError(e)) }
             }
         }
+    }
+
+    /** Reloads the chapter; used by the chapter error state's retry action. */
+    fun retry() {
+        pagesJob?.cancel()
+        _state.update { it.copy(isLoading = true, error = null) }
+        loadPages()
     }
 
     private fun loadAdjacentChapters() {
@@ -88,7 +105,7 @@ class ViewerViewModel(
                     )
                 }
             } catch (e: Exception) {
-                // 이전/다음 이동은 부가 기능이라 실패해도 뷰어 자체는 계속 사용 가능해야 함
+                Log.w("ViewerViewModel", "Adjacent chapters unavailable", e)
             }
         }
     }
@@ -117,24 +134,33 @@ class ViewerViewModel(
         _state.update { it.copy(firstPageSingle = value) }
     }
 
+    /**
+     * Records the visible page. Called from a debounced UI effect, so scrolling does not write to
+     * the database on every frame.
+     */
     fun onPageChanged(page: Int) {
-        val prev = _state.value.currentPage
-        _state.update { it.copy(currentPage = page) }
-        if (page == prev) return
         val totalPages = _state.value.pages.size
         if (totalPages == 0) return
+        val safePage = clampPage(page, totalPages)
+        val prev = _state.value.currentPage
+        _state.update { it.copy(currentPage = safePage) }
+        if (safePage == prev) return
         viewModelScope.launch {
-            repo.recordHistory(
-                chapterUrl = chapterUrl,
-                chapterTitle = chapterTitle,
-                seriesId = seriesId,
-                seriesUrl = seriesUrl,
-                seriesTitle = seriesTitle,
-                seriesAuthor = seriesAuthor,
-                coverUrl = coverUrl,
-                lastPage = page,
-                totalPages = totalPages
-            )
+            try {
+                repo.recordHistory(
+                    chapterUrl = chapterUrl,
+                    chapterTitle = chapterTitle,
+                    seriesId = seriesId,
+                    seriesUrl = seriesUrl,
+                    seriesTitle = seriesTitle,
+                    seriesAuthor = seriesAuthor,
+                    coverUrl = coverUrl,
+                    lastPage = safePage,
+                    totalPages = totalPages
+                )
+            } catch (e: Exception) {
+                Log.e("ViewerViewModel", "Failed to record reading history", e)
+            }
         }
     }
 }

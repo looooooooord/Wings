@@ -1,19 +1,17 @@
 package com.otaku.wings.ui.navigation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.LocalLibrary
@@ -25,14 +23,14 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -41,6 +39,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.otaku.wings.R
 import com.otaku.wings.data.model.displayTitle
 import com.otaku.wings.ui.detail.DetailScreen
 import com.otaku.wings.ui.home.HomeScreen
@@ -52,19 +51,20 @@ import com.otaku.wings.ui.viewer.ViewerScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 
-private const val TRANSITION_DURATION = 420
+private const val NAV_ANIMATION_DURATION = 220
+private const val TAB_ANIMATION_DURATION = 180
 
 private data class TabItem(
     val route: String,
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
+    val labelRes: Int,
+    val icon: ImageVector
 )
 
 private val tabItems = listOf(
-    TabItem("home", "الأحدث", Icons.Default.NewReleases),
-    TabItem("search", "استكشف", Icons.Default.Explore),
-    TabItem("my", "مكتبتي", Icons.Default.LocalLibrary),
-    TabItem("settings", "الإعدادات", Icons.Default.Settings)
+    TabItem("home", R.string.tab_latest, Icons.Default.NewReleases),
+    TabItem("search", R.string.tab_explore, Icons.Default.Explore),
+    TabItem("my", R.string.tab_library, Icons.Default.LocalLibrary),
+    TabItem("settings", R.string.tab_settings, Icons.Default.Settings)
 )
 
 @Composable
@@ -78,128 +78,90 @@ fun AppNavigation() {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(28.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 6.dp,
-                        shadowElevation = 14.dp
-                    ) {
-                        NavigationBar(
-                            modifier = Modifier.fillMaxWidth(),
-                            containerColor = Color.Transparent,
-                            tonalElevation = 0.dp
-                        ) {
-                            tabItems.forEach { tab ->
-                                val selected = currentRoute == tab.route
-                                val iconScale by animateFloatAsState(
-                                    targetValue = if (selected) 1.14f else 1f,
-                                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing),
-                                    label = "nav-icon-scale-${tab.route}"
-                                )
-                                val iconOffset by animateDpAsState(
-                                    targetValue = if (selected) (-3).dp else 0.dp,
-                                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing),
-                                    label = "nav-icon-offset-${tab.route}"
-                                )
-                                NavigationBarItem(
-                                    selected = selected,
-                                    onClick = {
-                                        nav.navigate(tab.route) {
-                                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    },
-                                    icon = {
-                                        Icon(
-                                            imageVector = tab.icon,
-                                            contentDescription = tab.label,
-                                            modifier = Modifier.graphicsLayer {
-                                                scaleX = iconScale
-                                                scaleY = iconScale
-                                                translationY = iconOffset.toPx()
-                                            }
-                                        )
-                                    },
-                                    label = { Text(tab.label) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                                    )
-                                )
-                            }
+                TabBar(
+                    currentRoute = currentRoute,
+                    onTabClick = { route ->
+                        nav.navigate(route) {
+                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
-                }
+                )
             }
         }
     ) { scaffoldPadding ->
         NavHost(
             navController = nav,
             startDestination = "home",
+            // The outer Scaffold owns the bottom inset; screens consume it exactly once here.
             modifier = Modifier.padding(bottom = scaffoldPadding.calculateBottomPadding()),
             enterTransition = {
-                fadeIn(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideInHorizontally(
-                    initialOffsetX = { it / 6 },
-                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
-                )
+                fadeIn(tween(NAV_ANIMATION_DURATION, easing = FastOutSlowInEasing)) +
+                    slideInHorizontally(
+                        initialOffsetX = { it / 10 },
+                        animationSpec = tween(NAV_ANIMATION_DURATION, easing = FastOutSlowInEasing)
+                    )
             },
             exitTransition = {
-                fadeOut(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideOutHorizontally(
-                    targetOffsetX = { -it / 6 },
-                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
-                )
+                fadeOut(tween(TAB_ANIMATION_DURATION, easing = FastOutSlowInEasing))
             },
             popEnterTransition = {
-                fadeIn(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideInHorizontally(
-                    initialOffsetX = { -it / 6 },
-                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
-                )
+                fadeIn(tween(NAV_ANIMATION_DURATION, easing = FastOutSlowInEasing)) +
+                    slideInHorizontally(
+                        initialOffsetX = { -it / 10 },
+                        animationSpec = tween(NAV_ANIMATION_DURATION, easing = FastOutSlowInEasing)
+                    )
             },
             popExitTransition = {
-                fadeOut(tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)) + slideOutHorizontally(
-                    targetOffsetX = { it / 6 },
-                    animationSpec = tween(TRANSITION_DURATION, easing = FastOutSlowInEasing)
-                )
+                fadeOut(tween(TAB_ANIMATION_DURATION, easing = FastOutSlowInEasing)) +
+                    slideOutHorizontally(
+                        targetOffsetX = { it / 10 },
+                        animationSpec = tween(NAV_ANIMATION_DURATION, easing = FastOutSlowInEasing)
+                    )
             }
         ) {
-            composable("home") {
+            // Top-level tabs cross-fade instead of sliding; pushes keep the slide.
+            composable(
+                "home",
+                enterTransition = { fadeIn(tween(TAB_ANIMATION_DURATION)) },
+                exitTransition = { fadeOut(tween(TAB_ANIMATION_DURATION)) }
+            ) {
                 HomeScreen(
-                    onSeriesClick = { series ->
-                        val encoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
-                        nav.navigate("detail/$encoded")
-                    },
+                    onSeriesClick = { series -> nav.navigate("detail/${encode(series.sourceUrl)}") },
                     onMoreClick = { category -> nav.navigate("list/$category") }
                 )
             }
-            composable("search") {
+            composable(
+                "search",
+                enterTransition = { fadeIn(tween(TAB_ANIMATION_DURATION)) },
+                exitTransition = { fadeOut(tween(TAB_ANIMATION_DURATION)) }
+            ) {
                 SearchScreen(
-                    onSeriesClick = { series ->
-                        val encoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
-                        nav.navigate("detail/$encoded")
-                    }
+                    onSeriesClick = { series -> nav.navigate("detail/${encode(series.sourceUrl)}") }
                 )
             }
-            composable("my") {
+            composable(
+                "my",
+                enterTransition = { fadeIn(tween(TAB_ANIMATION_DURATION)) },
+                exitTransition = { fadeOut(tween(TAB_ANIMATION_DURATION)) }
+            ) {
                 MyScreen(
-                    onSeriesClick = { series ->
-                        val encoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
-                        nav.navigate("detail/$encoded")
+                    onSeriesClick = { series -> nav.navigate("detail/${encode(series.sourceUrl)}") },
+                    onExploreClick = {
+                        nav.navigate("search") {
+                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }
-            composable("settings") { SettingsScreen() }
+            composable(
+                "settings",
+                enterTransition = { fadeIn(tween(TAB_ANIMATION_DURATION)) },
+                exitTransition = { fadeOut(tween(TAB_ANIMATION_DURATION)) }
+            ) { SettingsScreen() }
             composable(
                 "list/{category}",
                 arguments = listOf(navArgument("category") { type = NavType.StringType })
@@ -208,10 +170,7 @@ fun AppNavigation() {
                 ListScreen(
                     category = category,
                     onBack = { nav.popBackStack() },
-                    onSeriesClick = { series ->
-                        val encoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
-                        nav.navigate("detail/$encoded")
-                    }
+                    onSeriesClick = { series -> nav.navigate("detail/${encode(series.sourceUrl)}") }
                 )
             }
             composable(
@@ -223,14 +182,13 @@ fun AppNavigation() {
                     seriesUrl = url,
                     onBack = { nav.popBackStack() },
                     onChapterClick = { chapter, series ->
-                        val encodedChapterUrl = URLEncoder.encode(chapter.url, "UTF-8")
-                        val titleEncoded = URLEncoder.encode(chapter.displayTitle(series.title), "UTF-8")
-                        val seriesIdEncoded = URLEncoder.encode(series.id, "UTF-8")
-                        val seriesUrlEncoded = URLEncoder.encode(series.sourceUrl, "UTF-8")
-                        val seriesTitleEncoded = URLEncoder.encode(series.title, "UTF-8")
-                        val seriesAuthorEncoded = URLEncoder.encode(series.author, "UTF-8")
-                        val coverUrlEncoded = URLEncoder.encode(series.coverUrl, "UTF-8")
-                        nav.navigate("viewer/$encodedChapterUrl/$titleEncoded/$seriesIdEncoded/$seriesUrlEncoded/$seriesTitleEncoded/$seriesAuthorEncoded/$coverUrlEncoded")
+                        nav.navigate(
+                            viewerRoute(
+                                chapterUrl = chapter.url,
+                                title = chapter.displayTitle(series.title),
+                                series = series
+                            )
+                        )
                     }
                 )
             }
@@ -246,6 +204,7 @@ fun AppNavigation() {
                     navArgument("coverUrl") { type = NavType.StringType }
                 )
             ) { back ->
+                // The reader fades: a slide would compete with page transitions.
                 val chapterUrl = URLDecoder.decode(back.arguments?.getString("chapterUrl") ?: "", "UTF-8")
                 val title = URLDecoder.decode(back.arguments?.getString("title") ?: "", "UTF-8")
                 val seriesId = URLDecoder.decode(back.arguments?.getString("seriesId") ?: "", "UTF-8")
@@ -263,18 +222,95 @@ fun AppNavigation() {
                     coverUrl = coverUrl,
                     onBack = { nav.popBackStack() },
                     onNavigateChapter = { newChapterUrl, newTitle ->
-                        val encodedChapterUrl = URLEncoder.encode(newChapterUrl, "UTF-8")
-                        val titleEncoded = URLEncoder.encode(newTitle, "UTF-8")
-                        val seriesIdEncoded = URLEncoder.encode(seriesId, "UTF-8")
-                        val seriesUrlEncoded = URLEncoder.encode(seriesUrl, "UTF-8")
-                        val seriesTitleEncoded = URLEncoder.encode(seriesTitle, "UTF-8")
-                        val seriesAuthorEncoded = URLEncoder.encode(seriesAuthor, "UTF-8")
-                        val coverUrlEncoded = URLEncoder.encode(coverUrl, "UTF-8")
-                        nav.popBackStack()
-                        nav.navigate("viewer/$encodedChapterUrl/$titleEncoded/$seriesIdEncoded/$seriesUrlEncoded/$seriesTitleEncoded/$seriesAuthorEncoded/$coverUrlEncoded")
+                        // Replace the current viewer entry so Back still returns to the detail screen.
+                        nav.navigate(
+                            viewerRoute(newChapterUrl, newTitle, seriesId, seriesUrl, seriesTitle, seriesAuthor, coverUrl)
+                        ) {
+                            popUpTo("viewer/{chapterUrl}/{title}/{seriesId}/{seriesUrl}/{seriesTitle}/{seriesAuthor}/{coverUrl}") {
+                                inclusive = true
+                            }
+                        }
                     }
                 )
             }
         }
     }
 }
+
+@Composable
+private fun TabBar(currentRoute: String?, onTabClick: (String) -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // One surface only: the NavigationBar itself carries the shape and tonal elevation.
+        NavigationBar(
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            tonalElevation = 2.dp,
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        ) {
+            tabItems.forEach { tab ->
+                val selected = currentRoute == tab.route
+                val iconScale by animateFloatAsState(
+                    targetValue = if (selected) 1.06f else 1f,
+                    animationSpec = tween(NAV_ANIMATION_DURATION, easing = FastOutSlowInEasing),
+                    label = "nav-icon-scale-${tab.route}"
+                )
+                val label = stringResource(tab.labelRes)
+                NavigationBarItem(
+                    selected = selected,
+                    onClick = { if (!selected) onTabClick(tab.route) },
+                    icon = {
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = label,
+                            modifier = Modifier.graphicsLayer {
+                                scaleX = iconScale
+                                scaleY = iconScale
+                            }
+                        )
+                    },
+                    label = { Text(label) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                    )
+                )
+            }
+        }
+    }
+}
+
+private fun encode(value: String): String = URLEncoder.encode(value, "UTF-8")
+
+private fun viewerRoute(
+    chapterUrl: String,
+    title: String,
+    series: com.otaku.wings.data.model.Series
+): String = viewerRoute(
+    chapterUrl = chapterUrl,
+    title = title,
+    seriesId = series.id,
+    seriesUrl = series.sourceUrl,
+    seriesTitle = series.title,
+    seriesAuthor = series.author,
+    coverUrl = series.coverUrl
+)
+
+private fun viewerRoute(
+    chapterUrl: String,
+    title: String,
+    seriesId: String,
+    seriesUrl: String,
+    seriesTitle: String,
+    seriesAuthor: String,
+    coverUrl: String
+): String = "viewer/${encode(chapterUrl)}/${encode(title)}/${encode(seriesId)}/" +
+    "${encode(seriesUrl)}/${encode(seriesTitle)}/${encode(seriesAuthor)}/${encode(coverUrl)}"

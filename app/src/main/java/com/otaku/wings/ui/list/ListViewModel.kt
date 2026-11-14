@@ -1,17 +1,24 @@
 package com.otaku.wings.ui.list
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.otaku.wings.data.model.Series
 import com.otaku.wings.data.repository.MangaRepository
-import kotlinx.coroutines.flow.*
+import com.otaku.wings.ui.common.ErrorKind
+import com.otaku.wings.ui.common.classifyError
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ListUiState(
     val title: String = "",
     val items: List<Series> = emptyList(),
     val isLoading: Boolean = true,
+    val error: ErrorKind? = null,
     val selectedIds: Set<String> = emptySet(),
     val selectionMode: Boolean = false
 )
@@ -23,7 +30,7 @@ class ListViewModel(
 
     private val repo = MangaRepository(app)
 
-    // المحفوظات/آخر ما تمت مشاهدته는 로컬 DB 기반이라 꾹 눌러 일괄 حذف 가능; 최신/인기는 원격 목록이라 حذف 불가
+    // Only local-DB categories can be deleted in bulk; latest/popular are remote lists.
     val isDeletable = category == "bookmarked" || category == "recent"
 
     private val _state = MutableStateFlow(ListUiState(title = categoryTitle(category)))
@@ -63,36 +70,57 @@ class ListViewModel(
         }
     }
 
+    /** Re-runs the same load; used by the error state's retry action. */
+    fun retry() {
+        loadJob?.cancel()
+        _state.update { it.copy(isLoading = true, error = null) }
+        load()
+    }
+
+    private var loadJob: kotlinx.coroutines.Job? = null
+
     private fun load() {
-        viewModelScope.launch {
-            when (category) {
-                "latest" -> {
-                    val items = repo.fetchLatest()
-                    _state.update { it.copy(items = items, isLoading = false) }
-                }
-                "popular" -> {
-                    val items = repo.fetchPopular()
-                    _state.update { it.copy(items = items, isLoading = false) }
-                }
-                "bookmarked" -> {
-                    repo.getBookmarks().collect { items ->
-                        _state.update { it.copy(items = items, isLoading = false) }
+        loadJob = viewModelScope.launch {
+            try {
+                when (category) {
+                    "latest" -> {
+                        val items = repo.fetchLatest()
+                        _state.update { it.copy(items = items, isLoading = false, error = null) }
                     }
-                }
-                "recent" -> {
-                    repo.getRecentHistory(100).collect { items ->
-                        _state.update { it.copy(items = items, isLoading = false) }
+
+                    "popular" -> {
+                        val items = repo.fetchPopular()
+                        _state.update { it.copy(items = items, isLoading = false, error = null) }
                     }
+
+                    "bookmarked" -> {
+                        repo.getBookmarks().collect { items ->
+                            _state.update { it.copy(items = items, isLoading = false, error = null) }
+                        }
+                    }
+
+                    "recent" -> {
+                        repo.getRecentHistory(100).collect { items ->
+                            _state.update { it.copy(items = items, isLoading = false, error = null) }
+                        }
+                    }
+
+                    else -> _state.update { it.copy(isLoading = false) }
                 }
+            } catch (e: Exception) {
+                Log.e("ListViewModel", "Failed to load list '$category'", e)
+                _state.update { it.copy(isLoading = false, error = classifyError(e)) }
             }
         }
     }
 
-    private fun categoryTitle(cat: String) = when (cat) {
-        "latest" -> "أحدث القصص المصورة"
-        "popular" -> "القصص المصورة الشائعة"
-        "bookmarked" -> "المحفوظات"
-        "recent" -> "آخر ما تمت مشاهدته"
-        else -> ""
+    companion object {
+        fun categoryTitle(cat: String) = when (cat) {
+            "latest" -> "أحدث القصص المصورة"
+            "popular" -> "القصص المصورة الشائعة"
+            "bookmarked" -> "المحفوظات"
+            "recent" -> "آخر ما تمت مشاهدته"
+            else -> ""
+        }
     }
 }

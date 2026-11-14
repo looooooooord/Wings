@@ -1,12 +1,19 @@
 package com.otaku.wings.ui.detail
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.otaku.wings.data.model.Chapter
 import com.otaku.wings.data.model.Series
 import com.otaku.wings.data.repository.MangaRepository
-import kotlinx.coroutines.flow.*
+import com.otaku.wings.ui.common.ErrorKind
+import com.otaku.wings.ui.common.classifyError
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class DetailUiState(
@@ -15,7 +22,7 @@ data class DetailUiState(
     val isBookmarked: Boolean = false,
     val lastReadChapterUrl: String? = null,
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: ErrorKind? = null
 )
 
 class DetailViewModel(
@@ -24,12 +31,16 @@ class DetailViewModel(
 ) : AndroidViewModel(app) {
 
     private val repo = MangaRepository(app)
+
+    // Series ids are stored without the decorative "#slug" suffix the source URLs carry.
     private val seriesId = seriesUrl.substringAfter('#').ifBlank {
         seriesUrl.substringAfterLast("/").ifBlank { seriesUrl }
     }
 
     private val _state = MutableStateFlow(DetailUiState())
     val state: StateFlow<DetailUiState> = _state.asStateFlow()
+
+    private var loadJob: Job? = null
 
     init {
         load()
@@ -38,14 +49,22 @@ class DetailViewModel(
     }
 
     private fun load() {
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             try {
                 val (series, chapters) = repo.fetchSeriesDetail(seriesUrl)
-                _state.update { it.copy(series = series, chapters = chapters, isLoading = false) }
+                _state.update { it.copy(series = series, chapters = chapters, isLoading = false, error = null) }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, error = e.message) }
+                Log.e("DetailViewModel", "Failed to load series '$seriesUrl'", e)
+                _state.update { it.copy(isLoading = false, error = classifyError(e)) }
             }
         }
+    }
+
+    /** Re-runs the same load; used by the error state's retry action. */
+    fun retry() {
+        loadJob?.cancel()
+        _state.update { it.copy(isLoading = true, error = null) }
+        load()
     }
 
     private fun observeBookmark() {

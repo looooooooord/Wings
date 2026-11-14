@@ -1,3 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Wings</string>
+
+    <!-- Common actions -->
+    <string name="action_more">عرض المزيد</string>
+    <string name="action_retry">إعادة المحاولة</string>
+    <string name="action_refresh">تحديث</string>
+    <string name="action_back">رجوع</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_confirm">موافق</string>
+    <string name="action_search">بحث</string>
+    <string name="action_clear_search">مسح البحث</string>
+    <string name="action_clear_selection">إلغاء التحديد</string>
+    <string name="action_show_more">المزيد</string>
+    <string name="action_show_less">أقل</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_latest">الأحدث</string>
+    <string name="tab_explore">استكشف</string>
+    <string name="tab_library">مكتبتي</string>
+    <string name="tab_settings">الإعدادات</string>
+
+    <!-- Home -->
+    <string name="section_latest">أحدث القصص المصورة</string>
+    <string name="section_popular">القصص المصورة الشائعة</string>
+    <string name="section_bookmarked">المحفوظات</string>
+    <string name="section_recent">آخر ما تمت مشاهدته</string>
+    <string name="home_empty_title">لا يوجد محتوى</string>
+    <string name="home_empty_body">لم نتمكن من العثور على قصص لعرضها الآن.</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">ابحث عن عنوان قصة مصورة</string>
+    <string name="search_initial_title">ابحث عن قصتك القادمة</string>
+    <string name="search_initial_body">اكتب اسم قصة مصورة في الأعلى ثم اضغط بحث.</string>
+    <string name="search_no_results_title">لا توجد نتائج</string>
+    <string name="search_no_results_body">لم نجد نتائج عن «%1$s». جرّب كلمات أخرى.</string>
+
+    <!-- Library -->
+    <string name="library_title">مكتبتي</string>
+    <string name="library_empty_bookmarks_title">مكتبتك فارغة</string>
+    <string name="library_empty_bookmarks_body">احفظ القصص التي تحبها لتجدها هنا.</string>
+    <string name="library_empty_recent_title">لا سجل قراءة بعد</string>
+    <string name="library_empty_recent_body">ستظهر هنا القصص التي تبدأ بقراءتها.</string>
+    <string name="library_empty_action">استكشف القصص</string>
+
+    <!-- Lists -->
+    <string name="list_empty_latest">لا توجد قصص في هذا القسم</string>
+    <string name="list_empty_popular">لا توجد قصص شائعة الآن</string>
+    <string name="list_empty_bookmarks">لا توجد قصص محفوظة</string>
+    <string name="list_empty_recent">لا يوجد سجل قراءة</string>
+    <string name="list_empty_body">ستظهر القصص هنا بمجرد توفرها.</string>
+    <string name="list_delete_title">حذف العناصر</string>
+    <plurals name="list_delete_body">
+        <item quantity="zero">لن يتم حذف أي عنصر.</item>
+        <item quantity="one">هل تريد حذف عنصر واحد؟ لا يمكن التراجع.</item>
+        <item quantity="two">هل تريد حذف عنصرين؟ لا يمكن التراجع.</item>
+        <item quantity="few">هل تريد حذف %d عناصر؟ لا يمكن التراجع.</item>
+        <item quantity="many">هل تريد حذف %d عنصرًا؟ لا يمكن التراجع.</item>
+        <item quantity="other">هل تريد حذف %d عنصر؟ لا يمكن التراجع.</item>
+    </plurals>
+    <plurals name="selected_count">
+        <item quantity="zero">لم يتم التحديد</item>
+        <item quantity="one">عنصر واحد محدد</item>
+        <item quantity="two">عنصران محددان</item>
+        <item quantity="few">%d عناصر محددة</item>
+        <item quantity="many">%d عنصرًا محددًا</item>
+        <item quantity="other">%d عنصر محدد</item>
+    </plurals>
+
+    <!-- Detail -->
+    <string name="detail_continue">تابع القراءة</string>
+    <string name="detail_start">ابدأ القراءة</string>
+    <string name="detail_bookmark">المحفوظات</string>
+    <string name="detail_bookmarked">تمت الإضافة إلى المحفوظات</string>
+    <string name="detail_latest_chapter">الأحدث: %1$s</string>
+    <string name="detail_no_chapters">لا توجد فصول متاحة</string>
+    <string name="detail_no_chapters_body">لم يتم العثور على فصول لهذه القصة.</string>
+    <string name="detail_sort_ascending">الأقدم أولًا</string>
+    <string name="detail_sort_descending">الأحدث أولًا</string>
+    <string name="detail_sort_content_description">ترتيب الفصول</string>
+    <plurals name="detail_chapter_count">
+        <item quantity="zero">لا فصول</item>
+        <item quantity="one">فصل واحد</item>
+        <item quantity="two">فصلان</item>
+        <item quantity="few">%d فصول</item>
+        <item quantity="many">%d فصلًا</item>
+        <item quantity="other">%d فصل</item>
+    </plurals>
+    <string name="detail_chapter_read">تمت القراءة</string>
+    <string name="detail_chapter_last_read">آخر قراءة</string>
+    <string name="detail_cover_description">غلاف %1$s</string>
+
+    <!-- Settings -->
+    <string name="settings_group_appearance">المظهر</string>
+    <string name="settings_theme">المظهر</string>
+    <string name="settings_theme_support">اختر وضع الإضاءة، أو اتبع إعداد النظام.</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_system">النظام</string>
+    <string name="theme_dark">داكن</string>
+
+    <string name="settings_group_reader">القارئ</string>
+    <string name="settings_reader_mode">وضع العرض</string>
+    <string name="settings_reader_mode_support">تمرير للقصص الطويلة، سحب لصفحات المانجا.</string>
+    <string name="reader_mode_scroll">تمرير</string>
+    <string name="reader_mode_swipe">سحب</string>
+    <string name="settings_reading_direction">اتجاه القراءة</string>
+    <string name="settings_reading_direction_support">يحدد جهة ظهور الصفحة التالية في وضع السحب.</string>
+    <string name="direction_ltr">من اليسار إلى اليمين</string>
+    <string name="direction_rtl">من اليمين إلى اليسار</string>
+    <string name="settings_two_page">عرض صفحتين معًا</string>
+    <string name="settings_two_page_support">اعرض صفحتين متجاورتين في وضع السحب.</string>
+    <string name="settings_first_page">الصفحة الأولى (الغلاف)</string>
+    <string name="settings_first_page_single">صفحة واحدة</string>
+    <string name="settings_first_page_double">صفحتان</string>
+
+    <string name="settings_group_data">البيانات</string>
+    <string name="settings_export">تصدير نسخة احتياطية</string>
+    <string name="settings_export_support">حفظ المحفوظات وسجل القراءة في ملف JSON.</string>
+    <string name="settings_import">استيراد نسخة احتياطية</string>
+    <string name="settings_import_support">دمج محتوى ملف في بياناتك الحالية.</string>
+    <string name="settings_delete_data">حذف البيانات</string>
+    <string name="settings_delete_data_support">إزالة كل المحفوظات وسجل القراءة نهائيًا.</string>
+
+    <string name="settings_group_storage">مساحة التخزين</string>
+    <string name="settings_clear_cache">حذف ذاكرة الصور المؤقتة</string>
+    <string name="settings_clear_cache_support">تحرير المساحة المستخدمة في تخزين أغلفة القصص.</string>
+
+    <string name="settings_group_about">حول</string>
+    <string name="settings_version">الإصدار %1$s</string>
+    <string name="settings_github">GitHub</string>
+    <string name="settings_help">المساعدة</string>
+    <string name="settings_help_open">فتح المساعدة</string>
+    <string name="help_item_reader">من أيقونة الإعدادات أعلى القارئ يمكنك تغيير طريقة العرض واتجاه القراءة وعرض صفحتين.</string>
+    <string name="help_item_bookmarks">استخدم زر المحفوظات في صفحة التفاصيل لحفظ قصصك المفضلة وعرضها في تبويب مكتبتي.</string>
+    <string name="help_item_theme">يتيح لك المظهر اختيار وضع إضاءة التطبيق: فاتح أو النظام أو داكن.</string>
+    <string name="help_item_backup">يمكنك تصدير المحفوظات وسجل القراءة إلى ملف أو استعادتهما منه.</string>
+    <string name="help_item_delete">يحذف حذف البيانات المحفوظات وسجل القراءة نهائيًا. يرجى الانتباه لأن العملية لا يمكن التراجع عنها.</string>
+    <string name="help_item_cache">يحذف هذا الخيار ذاكرة الصور المؤقتة لتوفير مساحة التخزين.</string>
+
+    <string name="confirm_delete_data_body">سيُحذف كل المحفوظات وسجل القراءة نهائيًا. لا يمكن التراجع عن هذه العملية.</string>
+    <string name="confirm_import_title">استيراد نسخة احتياطية</string>
+    <string name="confirm_import_body">سيُضاف محتوى الملف إلى بياناتك الحالية، وستُستبدل العناصر التي تحمل المعرّف نفسه. لن تُحذف العناصر الأخرى.</string>
+    <string name="confirm_clear_cache_title">حذف ذاكرة الصور المؤقتة</string>
+    <string name="confirm_clear_cache_body">ستُحذف الصور المخزنة مؤقتًا. ستُحمَّل الأغلفة مرة أخرى عند الحاجة.</string>
+
+    <string name="snack_export_success">تم حفظ النسخة الاحتياطية</string>
+    <string name="snack_export_failure">فشل إنشاء النسخة الاحتياطية</string>
+    <string name="snack_import_success">تم استيراد النسخة الاحتياطية</string>
+    <string name="snack_import_failure">فشل استيراد النسخة الاحتياطية</string>
+    <string name="snack_delete_success">تم حذف البيانات</string>
+    <string name="snack_cache_success">تم حذف ذاكرة الصور المؤقتة</string>
+    <string name="snack_cache_failure">فشل حذف ذاكرة الصور المؤقتة</string>
+
+    <!-- Viewer -->
+    <string name="viewer_settings">إعدادات القارئ</string>
+    <string name="viewer_settings_open">إعدادات القارئ</string>
+    <string name="viewer_chapter_previous">الفصل السابق</string>
+    <string name="viewer_chapter_next">الفصل التالي</string>
+    <string name="viewer_page_indicator">%1$d / %2$d</string>
+    <string name="viewer_page_progress">الصفحة %1$d من %2$d</string>
+    <string name="viewer_page_slider">شريط التنقل بين الصفحات</string>
+    <string name="viewer_loading">جارٍ تحميل الفصل…</string>
+    <string name="viewer_error_title">تعذّر تحميل الفصل</string>
+    <string name="viewer_empty_chapter">لا توجد صفحات في هذا الفصل</string>
+    <string name="viewer_page_error">تعذّر تحميل الصفحة</string>
+    <string name="viewer_page_retry">إعادة المحاولة</string>
+    <string name="viewer_end_chapter">نهاية الفصل</string>
+    <string name="viewer_back_to_details">العودة إلى التفاصيل</string>
+    <string name="viewer_cover_description">صفحة %1$d</string>
+
+    <!-- Errors (generic, never raw exception text) -->
+    <string name="error_offline_title">لا يوجد اتصال بالإنترنت</string>
+    <string name="error_offline_body">تحقق من اتصالك ثم أعد المحاولة.</string>
+    <string name="error_generic_title">حدث خطأ غير متوقع</string>
+    <string name="error_generic_body">تعذّر إكمال العملية. أعد المحاولة بعد قليل.</string>
 </resources>
